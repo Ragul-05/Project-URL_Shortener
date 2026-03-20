@@ -90,7 +90,8 @@ public class SecurityConfig {
         configuration.setAllowedOriginPatterns(List.of(
                 "http://localhost:5173",
                 "https://*.vercel.app",
-                "https://project-url-shortener-zeta.vercel.app"
+                "https://project-url-shortener-zeta.vercel.app",
+                "https://project-url-shortener-six.vercel.app"
         ));
         configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));
         configuration.setAllowedHeaders(List.of("*"));
