@@ -16,11 +16,14 @@ import com.example.backend.exception.ResourceNotFoundException;
 import com.example.backend.repository.AnalyticsSummaryRepository;
 import com.example.backend.repository.UrlClickRepository;
 import com.example.backend.repository.UrlRepository;
+import com.example.backend.repository.UserRepository;
 import com.example.backend.util.CustomShortCodeValidator;
 import com.example.backend.util.ShortCodeGenerator;
 import com.example.backend.util.UrlValidator;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -37,6 +40,7 @@ public class UrlService {
     private final UrlClickRepository urlClickRepository;
     private final AnalyticsSummaryRepository analyticsSummaryRepository;
     private final UrlMetadataService urlMetadataService;
+    private final UserRepository userRepository;
 
     @Value("${app.base-url}")
     private String baseUrl;
@@ -52,6 +56,7 @@ public class UrlService {
         url.setOriginalUrl(request.originalUrl());
         url.setShortCode(shortCode);
         url.setExpiryDate(request.expiryDate());
+        url.setOwner(getCurrentUser());
 
         AnalyticsSummary analyticsSummary = new AnalyticsSummary();
         analyticsSummary.setUrl(url);
@@ -110,7 +115,8 @@ public class UrlService {
 
     @Transactional(readOnly = true)
     public List<UrlDashboardItemResponse> getAllUrls() {
-        return urlRepository.findAllByOrderByCreatedAtDesc()
+        var currentUser = getCurrentUser();
+        return urlRepository.findAllByOwnerOrderByCreatedAtDesc(currentUser)
                 .stream()
                 .map(url -> new UrlDashboardItemResponse(
                         url.getId(),
@@ -127,7 +133,8 @@ public class UrlService {
 
     @Transactional
     public UrlDashboardItemResponse toggleUrlStatus(Long id, ToggleUrlStatusRequest request) {
-        Url url = urlRepository.findById(id)
+        var currentUser = getCurrentUser();
+        Url url = urlRepository.findByIdAndOwnerId(id, currentUser.getId())
                 .orElseThrow(() -> new ResourceNotFoundException("URL not found for id: " + id));
 
         url.setActive(request.isActive());
@@ -147,7 +154,8 @@ public class UrlService {
 
     @Transactional(readOnly = true)
     public UrlAnalyticsResponse getAnalytics(Long id) {
-        Url url = urlRepository.findById(id)
+        var currentUser = getCurrentUser();
+        Url url = urlRepository.findByIdAndOwnerId(id, currentUser.getId())
                 .orElseThrow(() -> new ResourceNotFoundException("URL not found for id: " + id));
 
         AnalyticsSummary analyticsSummary = url.getAnalyticsSummary();
@@ -173,7 +181,8 @@ public class UrlService {
 
     @Transactional
     public void deleteUrl(Long id) {
-        Url url = urlRepository.findById(id)
+        var currentUser = getCurrentUser();
+        Url url = urlRepository.findByIdAndOwnerId(id, currentUser.getId())
                 .orElseThrow(() -> new ResourceNotFoundException("URL not found for id: " + id));
         urlRepository.delete(url);
     }
@@ -209,5 +218,14 @@ public class UrlService {
         }
 
         throw new IllegalStateException("Unable to generate a unique short code. Please try again.");
+    }
+
+    private User getCurrentUser() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        if (authentication == null || authentication.getName() == null) {
+            throw new IllegalStateException("No authenticated user in context");
+        }
+        return userRepository.findByEmail(authentication.getName())
+                .orElseThrow(() -> new IllegalStateException("Authenticated user not found: " + authentication.getName()));
     }
 }
