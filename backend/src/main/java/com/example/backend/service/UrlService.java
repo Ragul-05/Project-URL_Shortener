@@ -9,6 +9,7 @@ import com.example.backend.dto.UrlMetadataResponse;
 import com.example.backend.entity.AnalyticsSummary;
 import com.example.backend.entity.Url;
 import com.example.backend.entity.UrlClick;
+import com.example.backend.entity.User;
 import com.example.backend.exception.ExpiredUrlException;
 import com.example.backend.exception.InactiveUrlException;
 import com.example.backend.exception.InvalidUrlException;
