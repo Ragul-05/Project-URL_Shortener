@@ -64,8 +64,7 @@ public class GeminiAiService {
 
         try {
             JsonNode response = restClient.post()
-                    .uri(apiUrl.formatted(model))
-                    .header("x-goog-api-key", apiKey)
+                    .uri(apiUrl.formatted(model) + "?key=" + apiKey)
                     .contentType(MediaType.APPLICATION_JSON)
                     .body(payload)
                     .retrieve()
@@ -74,8 +73,11 @@ public class GeminiAiService {
             return extractAnalysis(response);
         } catch (AiIntegrationException exception) {
             throw exception;
+        } catch (org.springframework.web.client.RestClientResponseException exception) {
+            String errorBody = exception.getResponseBodyAsString();
+            throw new AiIntegrationException("Gemini API request failed: " + errorBody, exception);
         } catch (Exception exception) {
-            throw new AiIntegrationException("Gemini API request failed.", exception);
+            throw new AiIntegrationException("Gemini API request failed: " + exception.getMessage(), exception);
         }
     }
 

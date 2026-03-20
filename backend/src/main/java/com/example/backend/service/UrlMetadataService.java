@@ -114,11 +114,26 @@ public class UrlMetadataService {
     }
 
     private UrlMetadata buildMetadata(Url url) {
-        AiUrlAnalysis aiUrlAnalysis = geminiAiService.analyzeUrl(url.getOriginalUrl());
+        try {
+            return convert(geminiAiService.analyzeUrl(url.getOriginalUrl()));
+        } catch (Exception e) {
+            return defaultMetadata();
+        }
+    }
+
+    private UrlMetadata convert(AiUrlAnalysis analysis) {
         UrlMetadata metadata = new UrlMetadata();
-        metadata.setCategory(aiUrlAnalysis.category());
-        metadata.setRiskScore(aiUrlAnalysis.riskScore());
-        metadata.setTags(String.join(",", aiUrlAnalysis.tags()));
+        metadata.setCategory(analysis.category());
+        metadata.setRiskScore(analysis.riskScore());
+        metadata.setTags(String.join(",", analysis.tags()));
+        return metadata;
+    }
+
+    private UrlMetadata defaultMetadata() {
+        UrlMetadata metadata = new UrlMetadata();
+        metadata.setCategory("general");
+        metadata.setRiskScore(0);
+        metadata.setTags("uncategorized");
         return metadata;
     }
 
