@@ -53,6 +53,12 @@ jobs:
           SPRING_DATASOURCE_USERNAME: ${{ secrets.POSTGRES_USER }}
           SPRING_DATASOURCE_PASSWORD: ${{ secrets.POSTGRES_PASSWORD }}
           GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+          GEMINI_API_URL: "https://generativelanguage.googleapis.com/v1beta/models/%s:generateContent"
+          GEMINI_MODEL: "gemini-1.5-flash"
+          GEMINI_FALLBACK_MODELS: "gemini-1.5-pro,gemini-1.0-pro"
+          JWT_SECRET: "test_secret_key_which_must_be_very_long_for_security_algorithms"
+          JWT_EXPIRATION_MS: 86400000
+          APP_BASE_URL: "http://localhost:8081"
         run: mvn clean verify
 
       # 5️⃣ Login to Docker Hub
