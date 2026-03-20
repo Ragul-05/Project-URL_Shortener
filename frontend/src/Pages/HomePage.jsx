@@ -1,34 +1,13 @@
-import { useState } from 'react';
+import { Navigate, Link } from 'react-router-dom';
+import { useAuth } from '../context/AuthContext';
 import Navbar from '../Components/Navbar';
-import UrlForm from '../Components/UrlForm';
-import ResultCard from '../Components/ResultCard';
-import Loader from '../Components/Loader';
-import ErrorMessage from '../Components/ErrorMessage';
-import Dashboard from './Dashboard';
-import InsightsDashboard from './InsightsDashboard';
-import { shortenUrl } from '../services/urlService';
 
 function HomePage() {
-  const [result, setResult] = useState(null);
-  const [error, setError] = useState('');
-  const [isLoading, setIsLoading] = useState(false);
-  const [refreshKey, setRefreshKey] = useState(0);
+  const { isAuthenticated } = useAuth();
 
-  const handleShorten = async (formValues) => {
-    setIsLoading(true);
-    setError('');
-
-    try {
-      const response = await shortenUrl(formValues);
-      setResult(response);
-      setRefreshKey((currentKey) => currentKey + 1);
-    } catch (requestError) {
-      setResult(null);
-      setError(requestError.message || 'Something went wrong');
-    } finally {
-      setIsLoading(false);
-    }
-  };
+  if (isAuthenticated) {
+    return <Navigate to="/dashboard" replace />;
+  }
 
   return (
     <main className="app-shell">
@@ -43,27 +22,30 @@ function HomePage() {
               Create compact URLs, copy them instantly, and review link performance in
               a clean enterprise dashboard.
             </p>
+            <div style={{ marginTop: '24px' }}>
+              <Link to="/register" className="primary-button">Get Started Free</Link>
+            </div>
           </div>
 
           <div className="hero-card">
             <div className="card-header">
               <div>
-                <h2>Create Short Link</h2>
-                <p>Paste your long URL and generate a shareable short link instantly.</p>
+                <h2>Secure Link Management</h2>
+                <p>Join thousands of users managing their links securely.</p>
               </div>
-              <div className="status-chip">Live API</div>
+              <div className="status-chip">Enterprise Ready</div>
             </div>
 
-            <UrlForm onSubmit={handleShorten} isLoading={isLoading} />
-
-            {isLoading && <Loader />}
-            {error && <ErrorMessage message={error} />}
-            {result && !isLoading && <ResultCard result={result} />}
+            <div className="empty-state">
+              <h3>Login to Create Links</h3>
+              <p>Access your personal dashboard to create, manage and track your shortened URLs.</p>
+              <div style={{ marginTop: '16px', display: 'flex', gap: '12px', justifyContent: 'center' }}>
+                <Link to="/login" className="secondary-button">Login</Link>
+                <Link to="/register" className="primary-button">Create Account</Link>
+              </div>
+            </div>
           </div>
         </section>
-
-        <Dashboard refreshKey={refreshKey} />
-        <InsightsDashboard />
       </div>
     </main>
   );

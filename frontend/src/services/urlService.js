@@ -1,11 +1,6 @@
-import axios from 'axios';
+import api from './api';
 
-const apiClient = axios.create({
-  baseURL: 'http://localhost:8081',
-  headers: {
-    'Content-Type': 'application/json',
-  },
-});
+const apiClient = api;
 
 export async function shortenUrl(originalUrl) {
   try {
